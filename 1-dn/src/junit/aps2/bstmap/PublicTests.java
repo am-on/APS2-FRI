@@ -42,6 +42,17 @@ public class PublicTests extends TestCase {
 		assertTrue(bst.remove(4000));
 		assertFalse(bst.contains(4000));
 	}
+
+	public void testBSTRemoveNonExistent() {
+		bst.add(1000, "Ljubljana");
+		bst.add(2000, "Maribor");
+		bst.add(3000, "Celje");
+		bst.add(4000, "Kranj");
+		bst.add(5000, "Novo Mesto");
+		bst.add(6000, "Koper");
+		assertFalse(bst.remove(8000));
+		assertFalse(bst.contains(8000));
+	}
 	
 	public void testBSTNumberOfCompares() {
 		bst.add(1000, "Ljubljana");
@@ -63,5 +74,46 @@ public class PublicTests extends TestCase {
 		bst.add(3000, "Celje");
 		bst.add(5000, "Novo Mesto");
 		assertEquals(Arrays.asList(4000, 2000, 1000, 3000, 6000, 5000), bst.traversePreOrder());
+	}
+
+	public void testBSTTraverseInOrder() {
+		bst.add(4000, "Kranj");
+		bst.add(2000, "Maribor");
+		bst.add(6000, "Koper");
+		bst.add(1000, "Ljubljana");
+		bst.add(3000, "Celje");
+		bst.add(5000, "Novo Mesto");
+		assertEquals(Arrays.asList(1000, 2000, 3000, 4000, 5000, 6000), bst.traverseInOrder());
+	}
+
+	public void testBSTTraversePostOrder() {
+		bst.add(4000, "Kranj");
+		bst.add(2000, "Maribor");
+		bst.add(6000, "Koper");
+		bst.add(1000, "Ljubljana");
+		bst.add(3000, "Celje");
+		bst.add(5000, "Novo Mesto");
+		assertEquals(Arrays.asList(1000, 3000, 2000, 5000, 6000, 4000), bst.traversePostOrder());
+	}
+
+	public void testBSTTraverseLevel() {
+		bst.add(4000, "Kranj");
+		bst.add(2000, "Maribor");
+		bst.add(6000, "Koper");
+		bst.add(1000, "Ljubljana");
+		bst.add(3000, "Celje");
+		bst.add(5000, "Novo Mesto");
+		assertEquals(Arrays.asList(4000, 2000, 6000, 1000, 3000, 5000), bst.traverseLevelOrder());
+	}
+
+	public void testBSTMin() {
+		bst.add(1000, "Ljubljana");
+		bst.add(2000, "Maribor");
+		bst.add(3000, "Celje");
+		bst.add(4000, "Kranj");
+		bst.add(600, "Min");
+		bst.add(5000, "Novo Mesto");
+		bst.add(6000, "Koper");
+		assertEquals(bst.findMin().getValue(), "Min");
 	}
 }

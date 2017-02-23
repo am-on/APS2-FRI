@@ -122,5 +122,18 @@ public class BSTMap {
 	public List<Integer> traverseLevelOrder(){
 		return root.traverseLevelOrder();
 	}
+
+	/**
+	 * Finds the smallest element in the subtree.
+	 *
+	 * @return Smallest element in the subtree
+	 */
+	public BSTMapNode findMin() {
+		if (root == null) {
+			return null;
+		} else {
+			return root.findMin();
+		}
+	}
 }
 

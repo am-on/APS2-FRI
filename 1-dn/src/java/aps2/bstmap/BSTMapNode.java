@@ -2,6 +2,7 @@ package aps2.bstmap;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Implementation of the (unbalanced) Binary Search Tree set node.
@@ -74,7 +75,22 @@ public class BSTMapNode {
 	 * @return true, if the element was added; false otherwise.
 	 */
 	public boolean add(BSTMapNode element) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		element.parent = this;
+		if (this.compare(element) > 0) {
+			if (this.getRight() == null) {
+				this.right = element;
+				return true;
+			} else {
+				return this.getRight().add(element);
+			}
+		} else {
+			if (this.getLeft() == null) {
+				this.left = element;
+				return true;
+			} else {
+				return this.getLeft().add(element);
+			}
+		}
 	}
 	
 	/**
@@ -84,8 +100,51 @@ public class BSTMapNode {
 	 * @return true, if the element was found and removed; false otherwise.
 	 */
 	public boolean remove(BSTMapNode element) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+        BSTMapNode node = this.findNode(element);
+        if (node == null) {
+            return false;
+        }
+        if (node.getRight() != null) {
+            BSTMapNode replacement = node.getRight().findMin();
+            node.setKey(replacement.getKey());
+            node.setValue(replacement.getValue());
+            replacement.parent.left = null;
+            return true;
+        }
+        if (node.getLeft() != null) {
+            node.getLeft().parent = node.parent;
+            if (node.parent.compare(node.getLeft()) > 0) {
+                parent.setRight(node.getLeft());
+                return true;
+            } else {
+                parent.setLeft(node.getLeft());
+                return true;
+            }
+        }
+        return false;
 	}
+
+    /**
+     *
+     * Finds given node, if node doesn't exists, return null
+     *
+     * @param element we are looking for
+     * @return found element or null if element doesn't exists
+     */
+    private BSTMapNode findNode (BSTMapNode element) {
+        if (this.compare(element) == 0) {
+            return this;
+        }
+        BSTMapNode node = null;
+        if (this.getLeft() != null) {
+            node = this.getLeft().findNode(element);
+        }
+        if (node == null && this.getRight() != null) {
+            node = this.getRight().findNode(element);
+        }
+        return node;
+    }
+
 
 	/**
 	 * Checks whether the element with the given key exists in the subtree.
@@ -94,7 +153,9 @@ public class BSTMapNode {
 	 * @return true, if an element with the given key is contained in the subtree; false otherwise.
 	 */
 	public boolean contains(BSTMapNode element) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		return this.compare(element) == 0
+				|| (this.getRight() != null && this.getRight().contains(element))
+				|| (this.getLeft() != null && this.getLeft().contains(element));
 	}
 	
 	/**
@@ -104,7 +165,17 @@ public class BSTMapNode {
 	 * @return String value of the given key; null, if an element with the given key does not exist in the subtree.
 	 */
 	public String get(BSTMapNode element) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		if (this.compare(element) == 0) {
+			return this.getValue();
+		}
+		String str = null;
+		if (this.getLeft() != null) {
+			str = this.getLeft().get(element);
+		}
+		if (str == null && this.getRight() != null) {
+			str = this.getRight().get(element);
+		}
+		return str;
 	}
 
 	/**
@@ -113,7 +184,10 @@ public class BSTMapNode {
 	 * @return Smallest element in the subtree
 	 */
 	public BSTMapNode findMin() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		if (this.getLeft() == null) {
+		    return this;
+        }
+        return this.getLeft().findMin();
 	}
 	
 	/**
@@ -122,7 +196,15 @@ public class BSTMapNode {
 	 * @return List of keys stored in BST obtained by pre-order traversing the tree.
 	 */
 	List<Integer> traversePreOrder() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		List<Integer> list = new LinkedList<>();
+		list.add(this.getKey());
+		if (this.getLeft() != null) {
+			list.addAll(this.getLeft().traversePreOrder());
+		}
+		if (this.getRight() != null) {
+			list.addAll(this.getRight().traversePreOrder());
+		}
+		return list;
 	}
 
 	/**
@@ -131,7 +213,15 @@ public class BSTMapNode {
 	 * @return List of keys stored in BST obtained by in-order traversing the tree.
 	 */
 	List<Integer> traverseInOrder() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		List<Integer> list = new LinkedList<>();
+		if (this.getLeft() != null) {
+			list.addAll(this.getLeft().traverseInOrder());
+		}
+		list.add(this.getKey());
+		if (this.getRight() != null) {
+			list.addAll(this.getRight().traverseInOrder());
+		}
+		return list;
 	}
 
 	/**
@@ -140,7 +230,15 @@ public class BSTMapNode {
 	 * @return List of keys stored in BST obtained by post-order traversing the tree.
 	 */
 	List<Integer> traversePostOrder() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		List<Integer> list = new LinkedList<>();
+		if (this.getLeft() != null) {
+			list.addAll(this.getLeft().traversePostOrder());
+		}
+		if (this.getRight() != null) {
+			list.addAll(this.getRight().traversePostOrder());
+		}
+		list.add(this.getKey());
+		return list;
 	}
 
 	/**
@@ -149,6 +247,21 @@ public class BSTMapNode {
 	 * @return List of keys stored in BST obtained by breadth-first traversal of the tree.
 	 */
 	List<Integer> traverseLevelOrder() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+        List<Integer> list = new LinkedList<>();
+        List<BSTMapNode> q = new LinkedList<>();
+        q.add(this);
+        while (!q.isEmpty()) {
+            BSTMapNode e = q.get(0);
+            q.remove(0);
+            list.add(e.getKey());
+            if (e.getLeft() != null) {
+                q.add(e.getLeft());
+            }
+            if (e.getRight() != null) {
+                q.add(e.getRight());
+            }
+        }
+        return list;
 	}
+
 }
