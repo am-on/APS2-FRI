@@ -132,17 +132,20 @@ public class BSTMapNode {
      * @return found element or null if element doesn't exists
      */
     private BSTMapNode findNode (BSTMapNode element) {
-        if (this.compare(element) == 0) {
+    	int cmp = this.compare(element);
+        if (cmp == 0) {
             return this;
         }
-        BSTMapNode node = null;
-        if (this.getLeft() != null) {
-            node = this.getLeft().findNode(element);
-        }
-        if (node == null && this.getRight() != null) {
-            node = this.getRight().findNode(element);
-        }
-        return node;
+        if (cmp < 0) {
+        	if (this.getLeft() != null) {
+				return this.getLeft().findNode(element);
+			}
+		} else {
+        	if (this.getRight() != null) {
+				return this.getRight().findNode(element);
+			}
+		}
+        return null;
     }
 
 
@@ -153,9 +156,10 @@ public class BSTMapNode {
 	 * @return true, if an element with the given key is contained in the subtree; false otherwise.
 	 */
 	public boolean contains(BSTMapNode element) {
-		return this.compare(element) == 0
-				|| (this.getRight() != null && this.getRight().contains(element))
-				|| (this.getLeft() != null && this.getLeft().contains(element));
+		int cmp = this.compare(element);
+		return cmp == 0
+				|| (cmp < 0 && this.getLeft() != null && this.getLeft().contains(element))
+				|| (this.getRight() != null && this.getRight().contains(element));
 	}
 	
 	/**
