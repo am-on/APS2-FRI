@@ -2,7 +2,7 @@ package aps2.bstmap;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+
 
 /**
  * Implementation of the (unbalanced) Binary Search Tree set node.
@@ -14,7 +14,7 @@ public class BSTMapNode {
 	private String value;
 
 	public BSTMapNode(BSTMapNode l, BSTMapNode r, BSTMapNode p,
-			int key, String value) {
+					  int key, String value) {
 		super();
 		this.left = l;
 		this.right = r;
@@ -46,18 +46,18 @@ public class BSTMapNode {
 	public void setKey(int key) {
 		this.key = key;
 	}
-	
+
 	public String getValue() {
 		return this.value;
 	}
-	
+
 	public void setValue(String value) {
 		this.value = value;
 	}
 
 	public int compare(BSTMapNode node) {
 		counter++;
-		return node.key-this.key;
+		return node.key - this.key;
 	}
 
 	public int getCounter() {
@@ -70,7 +70,7 @@ public class BSTMapNode {
 
 	/**
 	 * If the element doesn't exist yet, adds the given element to the subtree.
-	 * 
+	 *
 	 * @param element Given key/value wrapped inside an empty BSTNode instance
 	 * @return true, if the element was added; false otherwise.
 	 */
@@ -92,61 +92,74 @@ public class BSTMapNode {
 			}
 		}
 	}
-	
+
 	/**
 	 * Finds and removes the element with the given key from the subtree.
-	 * 
+	 *
 	 * @param element Given key wrapped inside an empty BSTNode instance
 	 * @return true, if the element was found and removed; false otherwise.
 	 */
-	public boolean remove(BSTMapNode element) {
-        BSTMapNode node = this.findNode(element);
-        if (node == null) {
-            return false;
-        }
-        if (node.getRight() != null) {
-            BSTMapNode replacement = node.getRight().findMin();
-            node.setKey(replacement.getKey());
-            node.setValue(replacement.getValue());
-            replacement.parent.left = null;
-            return true;
-        }
-        if (node.getLeft() != null) {
-            node.getLeft().parent = node.parent;
-            if (node.parent.compare(node.getLeft()) > 0) {
-                parent.setRight(node.getLeft());
-                return true;
-            } else {
-                parent.setLeft(node.getLeft());
-                return true;
-            }
-        }
-        return false;
-	}
+	 public boolean remove(BSTMapNode element) {
+		int cmp = this.compare(element);
 
-    /**
-     *
-     * Finds given node, if node doesn't exists, return null
-     *
-     * @param element we are looking for
-     * @return found element or null if element doesn't exists
-     */
-    private BSTMapNode findNode (BSTMapNode element) {
-    	int cmp = this.compare(element);
-        if (cmp == 0) {
-            return this;
-        }
-        if (cmp < 0) {
-        	if (this.getLeft() != null) {
-				return this.getLeft().findNode(element);
+		// search for element to remove
+		if (cmp > 0) {
+			if (this.getRight() != null){
+				return this.getRight().remove(element);
 			}
-		} else {
-        	if (this.getRight() != null) {
-				return this.getRight().findNode(element);
+		} else if (cmp < 0) {
+			if (this.getLeft() != null) {
+				return this.getLeft().remove(element);
 			}
 		}
-        return null;
-    }
+
+		// remove element
+		if (cmp == 0) {
+			if (this.getRight() != null && this.getLeft() != null) { // find replacement in right subtree
+				BSTMapNode replacement = this.getRight().findMin();
+
+				if (replacement.getRight() != null && this.compare(replacement.parent) != 0) {
+					replacement.getRight().parent = replacement.parent;
+					replacement.parent.setLeft(replacement.getRight());
+				} else if (this.compare(replacement.parent) == 0) {
+					this.setRight(replacement.getRight());
+				} else{
+					replacement.parent.setLeft(null);
+				}
+
+				this.setKey(replacement.getKey());
+				this.setValue(replacement.getValue());
+
+			} else if (this.getLeft() != null) {
+				this.setKey(this.getLeft().getKey());
+				this.setValue(this.getLeft().getValue());
+				this.setRight(this.getLeft().getRight());
+				this.setLeft(this.getLeft().getLeft());
+
+				if(this.getLeft() != null) {
+					this.getLeft().parent = this;
+				}
+				if(this.getRight() != null) {
+					this.getRight().parent = this;
+				}
+			} else if (this.getLeft() == null && this.getRight() != null) {
+				this.setKey(this.getRight().getKey());
+				this.setValue(this.getRight().getValue());
+				this.setLeft(this.getRight().getLeft());
+				this.setRight(this.getRight().getRight());
+			} else {
+				if (this.compare(this.parent) > 0) { // if deleted node is left child
+					this.parent.setLeft(null);
+				} else {
+					this.parent.setRight(null);
+				}
+			}
+
+			return true;
+		}
+
+			return false;
+	}
 
 
 	/**
