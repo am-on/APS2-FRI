@@ -29,7 +29,12 @@ public class HashMapChaining {
 	 * @return true, if element was added; false otherwise.
 	 */
 	public boolean add(int k, String v) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		if(this.contains(k)) {
+			return false;
+		}
+		int index = this.getHash(k);
+		this.table[index].add(new Element(k, v));
+		return true;
 	}
 
 	/**
@@ -39,7 +44,12 @@ public class HashMapChaining {
 	 * @return true, if the element was removed; otherwise false
 	 */
 	public boolean remove(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		if(!this.contains(k)) {
+			return false;
+		}
+		int index = this.getHash(k);
+		this.table[index].remove(new Element(k, ""));
+		return true;
 	}
 
 	/**
@@ -49,7 +59,8 @@ public class HashMapChaining {
 	 * @return true, if the element was found; false otherwise.
 	 */
 	public boolean contains(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		int index = this.getHash(k);
+		return this.table[index].contains(new Element(k, ""));
 	}
 	
 	/**
@@ -59,7 +70,24 @@ public class HashMapChaining {
 	 * @return The value for the given key or null, if such a key does not exist.
 	 */
 	public String get(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		int index = this.getHash(k);
+		Element e = new Element(k, "");
+		for (int i = 0; i < this.table[index].size(); i++) {
+			if (this.table[index].get(i).equals(e)) {
+				return this.table[index].get(i).value;
+			}
+		}
+		return null;
+	}
+
+	private int getHash(int k) {
+		switch (this.h) {
+			case DivisionMethod:
+				return HashFunction.DivisionMethod(k, this.table.length);
+			case KnuthMethod:
+				return HashFunction.KnuthMethod(k, this.table.length);
+			default: return -1;
+		}
 	}
 }
 
