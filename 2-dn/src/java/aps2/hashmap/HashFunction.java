@@ -21,7 +21,7 @@ public class HashFunction {
 		if (k < 0) {
 			k *= -1;
 		}
-		throw new UnsupportedOperationException("You need to implement this function!");
+		return k % m;
 	}
 	
 	/**
@@ -42,7 +42,7 @@ public class HashFunction {
 		}
 
 		Double A = (sqrt(5)-1) / 2;
-		
+
 		return (int) (m * (k * A % 1));
 	}
 }
