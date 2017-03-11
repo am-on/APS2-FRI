@@ -43,6 +43,6 @@ public class HashFunction {
 
 		Double A = (sqrt(5)-1) / 2;
 
-		return (int) (m * (k * A % 1));
+		return (int) floor(m * (k * A % 1));
 	}
 }
