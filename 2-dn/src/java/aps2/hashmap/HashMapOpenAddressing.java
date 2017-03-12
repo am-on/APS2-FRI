@@ -37,7 +37,13 @@ public class HashMapOpenAddressing {
 	 * @return true, if element was added; false otherwise.
 	 */
 	public boolean add(int k, String v) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		int i = this.getNewOpenHash(k);
+
+		if (i == -1) return false;
+
+		this.table[i] = new Element(k, v);
+		return true;
+
 	}
 
 	/**
@@ -47,7 +53,13 @@ public class HashMapOpenAddressing {
 	 * @return true, if the element was removed; otherwise false
 	 */
 	public boolean remove(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		int i = this.getOpenHash(k);
+
+		if (i == -1) return false;
+
+		table[i] = new Element(Integer.MIN_VALUE, "");
+		return true;
+
 	}
 
 	/**
@@ -57,7 +69,7 @@ public class HashMapOpenAddressing {
 	 * @return true, if the element was found; false otherwise.
 	 */
 	public boolean contains(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		return this.getOpenHash(k) != -1;
 	}
 	
 	/**
@@ -67,7 +79,70 @@ public class HashMapOpenAddressing {
 	 * @return The value for the given key or null, if such a key does not exist.
 	 */
 	public String get(int k) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+		int i = this.getOpenHash(k);
+		return i != -1 ? this.table[i].value : null;
+	}
+
+
+	private int getOpenHash(int k) {
+		int hash = this.getHash(k);
+		switch (this.c) {
+			case LinearProbing: return this.linearProbing(hash, k);
+			case QuadraticProbing: return this.quadraticProbing(hash, k);
+			case DoubleHashing: return this.doubleHashing(hash, k);
+		}
+		return -1;
+	}
+
+	private int getNewOpenHash(int k) {
+		int hash = this.getHash(k);
+		k = Integer.MIN_VALUE;
+		switch (this.c) {
+			case LinearProbing: return this.linearProbing(hash, k);
+			case QuadraticProbing: return this.quadraticProbing(hash, k);
+			case DoubleHashing: return this.doubleHashing(hash, k);
+		}
+		return -1;
+	}
+
+	private int linearProbing(int hash, int key) {
+		for (int i = 0; i < this.table.length; i++) {
+			int l = (hash + i) %  this.table.length;
+			if (this.table[l].key == key) {
+				return l;
+			}
+		}
+		return -1;
+	}
+
+	private int quadraticProbing(int hash, int key) {
+		for (int i = 0; i < this.table.length; i++) {
+			int l = (int)(hash + Math.pow(i, 2)) % this.table.length;
+			if (this.table[l].key == key) {
+				return l;
+			}
+		}
+		return -1;
+	}
+
+	private int doubleHashing(int hash, int key) {
+		for (int i = 0; i < this.table.length; i++) {
+			int l = (hash + i * hash) % this.table.length;
+			if (this.table[l].key == key) {
+				return l;
+			}
+		}
+		return -1;
+	}
+
+	private int getHash(int k) {
+		switch (this.h) {
+			case DivisionMethod:
+				return HashFunction.DivisionMethod(k, this.table.length);
+			case KnuthMethod:
+				return HashFunction.KnuthMethod(k, this.table.length);
+			default: return -1;
+		}
 	}
 }
 
