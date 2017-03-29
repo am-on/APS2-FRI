@@ -21,7 +21,10 @@ public class BinomialHeap {
 	 * @return True, if the insertion was successful; False otherwise.
 	 */
 	public boolean insert(int key) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+	    data.add(new BinomialNode(key));
+	    consolidate();
+	    n++;
+	    return true;
 	}
 	
 	/**
@@ -31,8 +34,15 @@ public class BinomialHeap {
 	 * @return The minimum element in the heap or the maximum integer value, if the heap is empty.
 	 */
 	public int getMin() {
-		throw new UnsupportedOperationException("You need to implement this function!");
-	}
+	    int min = Integer.MAX_VALUE;
+        for (int i = 0; i < data.size(); i++) {
+            int key = data.elementAt(i).getKey();
+            if (key < min) {
+                min = key;
+            }
+        }
+        return min;
+    }
 	
 	/**
 	 * Find and removes the minimum element in the binomial heap and
@@ -41,7 +51,29 @@ public class BinomialHeap {
 	 * @return True, if the element was deleted; False otherwise.
 	 */
 	public boolean delMin() {
-		throw new UnsupportedOperationException("You need to implement this function!");
+	    if (n <= 0) return false;
+        int delIndex = 0;
+        BinomialNode min = data.elementAt(0);
+        for (int i = 1; i < data.size(); i++) {
+            if (data.elementAt(i).getKey() < min.getKey()) {
+                min = data.elementAt(i);
+                delIndex = i;
+            }
+        }
+
+        data.remove(delIndex);
+
+        Vector<BinomialNode> childs = min.getChildren();
+
+        for (int i = 0; i < childs.size(); i++) {
+            data.addElement(childs.elementAt(i));
+        }
+
+        n--;
+
+        consolidate();
+
+        return true;
 	}
 	
 	/**
@@ -52,7 +84,13 @@ public class BinomialHeap {
 	 * @return Returns the new parent tree
 	 */
 	public static BinomialNode mergeTrees(BinomialNode t1, BinomialNode t2) {
-		throw new UnsupportedOperationException("You need to implement this function!");
+
+        if (t1.compare(t2) >= 0) {
+            t1.addChild(t2);
+            return t1;
+        }
+        t2.addChild(t1);
+        return t2;
 	}
 	
 	/**
@@ -62,7 +100,21 @@ public class BinomialHeap {
 	 * @return True, if changes were made to the list of root nodes; False otherwise.
 	 */
 	private boolean consolidate() {
-		throw new UnsupportedOperationException("You need to implement this function!");
-	}
+
+        for (int i = 0; i < data.size()-1; i++) {
+            BinomialNode t1 = data.get(i);
+            BinomialNode t2 = data.get(i+1);
+
+            if (t1.getDegree() == t2.getDegree()) {
+                BinomialNode t3 = mergeTrees(t1, t2);
+                data.remove(i+1);
+                data.set(i, t3);
+                consolidate();
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
