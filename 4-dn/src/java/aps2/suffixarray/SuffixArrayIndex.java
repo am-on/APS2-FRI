@@ -1,18 +1,20 @@
 package aps2.suffixarray;
 
-
 import java.util.HashSet;
 import java.util.Set;
+import java.util.*;
 
 public class SuffixArrayIndex {
 	private String text; // input string
 	private int[] SA;    // suffix array
+    private Random rn;
 
 	public int[] getSuffixArray() { return SA; }
 
 	SuffixArrayIndex(String text) {
 		this.text = text;
 		this.SA = new int[text.length()];
+		rn = new Random();
 		construct();
 	}
 
@@ -30,9 +32,7 @@ public class SuffixArrayIndex {
         quickSort(0, SA.length-1);
 
 
-        for (int i = 0; i < SA.length; i++) {
-            System.out.println(text.substring(SA[i]));
-        }
+
     }
 
     private void quickSort(int left, int right){
@@ -47,7 +47,7 @@ public class SuffixArrayIndex {
     }
 
     int partition(int left, int right){
-
+        int p = left + rn.nextInt(right - left + 1);
         int pivot = SA[left];
         int l = left;
         int r = right+1;
@@ -71,6 +71,8 @@ public class SuffixArrayIndex {
         SA[j] = c;
     }
 
+
+
 	/**
 	 * Returns True, if the suffix at pos1 is lexicographically before
 	 * the suffix at pos2.
@@ -83,7 +85,20 @@ public class SuffixArrayIndex {
         String s1 = text.substring(pos1);
         String s2 = text.substring(pos2);
 
-        return s1.compareTo(s2) < 0;
+
+
+        int len = Math.min(s1.length(), s2.length());
+
+        for (int i = 0; i < len; i++) {
+            if (s1.charAt(i) < s2.charAt(i)) {
+                return true;
+            } else if (s1.charAt(i) > s2.charAt(i)) {
+                return false;
+            }
+        }
+
+        return s1.length() < s2.length();
+
 	}
 
 	/**
@@ -122,19 +137,24 @@ public class SuffixArrayIndex {
             }
         }
 
-        System.out.println(start + " " + end + " " + SA[start]);
+        if (start >= SA.length)
+            start = end;
 
-        //TODO fix search of last
+        if(query.length() > 0 && text.charAt(SA[start]) != query.charAt(0)) {
+            if (end < SA.length && end >= 0)
+                start = end;
+            else
+                return s;
+        }
 
-        // check if "start" is over length of "SA" or starting chars don't match
-        if ((query.length() > 0 && text.substring(SA[start]).charAt(0) != query.charAt(0))) {
+        if (start < 0 || query.length() > 0 && text.charAt(SA[start]) != query.charAt(0)) {
             return s;
         }
+
 
         // ref is first matched prefix, use it for comparison with other prefixes
         int ref = SA[start];
 
-        System.out.println(ref);
 
         for (int i = start; i < SA.length; i++) {
             // add indexes to set as long as cpl is larger or equal to query length
@@ -144,6 +164,15 @@ public class SuffixArrayIndex {
                 break;
             }
         }
+
+        for (int i = start; i >= 0; i--) {
+            if (longestCommonPrefixLen(ref, SA[i]) >= query.length()) {
+                s.add(SA[i]);
+            } else {
+                break;
+            }
+        }
+
         return s;
 	}
 
