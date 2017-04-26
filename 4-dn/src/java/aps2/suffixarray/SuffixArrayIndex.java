@@ -82,22 +82,18 @@ public class SuffixArrayIndex {
 	 * @return boolean
 	 */
 	public boolean suffixSuffixCompare(int pos1, int pos2) {
-        String s1 = text.substring(pos1);
-        String s2 = text.substring(pos2);
 
+	    int limit = text.length() - Math.max(pos1, pos2);
 
-
-        int len = Math.min(s1.length(), s2.length());
-
-        for (int i = 0; i < len; i++) {
-            if (s1.charAt(i) < s2.charAt(i)) {
+        for (int i = 0; i < limit; i++) {
+            if (text.charAt(i+pos1) < text.charAt(i+pos2)) {
                 return true;
-            } else if (s1.charAt(i) > s2.charAt(i)) {
+            } else if (text.charAt(i+pos1) > text.charAt(i+pos2)) {
                 return false;
             }
         }
 
-        return s1.length() < s2.length();
+        return pos1 > pos2;
 
 	}
 
