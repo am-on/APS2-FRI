@@ -34,7 +34,18 @@ public class TravellingSalesman {
         shortestDistance = Double.MAX_VALUE;
 
         distance = new Double[nodes.size()][nodes.size()];
-	}
+        fillDistanceMatrix();
+
+    }
+
+    private void fillDistanceMatrix() {
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = 0; j < nodes.size(); j++) {
+                distance[i][j] = nodes.get(i).distance(nodes.get(j));
+                distance[j][i] = distance[i][j];
+            }
+        }
+    }
 	
 	/**
 	 * Returns the distance between nodes v1 and v2.
@@ -44,13 +55,10 @@ public class TravellingSalesman {
 	 * @return Euclidean distance between the nodes
 	 */
 	public double getDistance(int v1, int v2) {
-
-//        if (distance[v1][v2] == null) {
-//            distance[v1][v2] = nodes.get(v1).distance(nodes.get(v2));
-//        }
-
-		return nodes.get(v1).distance(nodes.get(v2));
+		return distance[v1][v2];
 	}
+
+
 	
 	/**
 	 * Finds and returns an optimal shortest tour from the origin node and
@@ -68,29 +76,45 @@ public class TravellingSalesman {
             return shortestPath;
 
         ArrayList<Integer> nId = new ArrayList<>(nodesId);
-        nId.remove(start);
+        int startId = nId.remove(start);
+
+
+        int[] left = new int[nId.size()];
+
+		for (int i = 0; i < nId.size(); i++) {
+			left[i] = nId.get(i);
+		}
 
         int[] tour = new int[nodes.size()];
+		tour[0] = start;
 
-        s(tour, nId, 0);
+        //s(tour, left, 1);
+		s2(tour, left, 1, 0.0);
+
 
         return shortestPath;
 	}
 
     private int[] s(int[] r, ArrayList<Integer> left, int level) {
 	    // clone arrays
-	    r = r.clone();
+	    //r = r.clone();
 
-        if (left.size() == 0) {
+        if (level >= r.length-1) {
             Double distance = calculateDistanceTravelled(r);
             if (distance < shortestDistance) {
-                shortestPath = r;
+                shortestPath = r.clone();
                 shortestDistance = distance;
             }
             return r;
         }
 
-        for (int i = 0; i < left.size(); i++) {
+        int len = left.size();
+
+        if (level == 0) {
+            len = (len)/2 + 1;
+        }
+
+        for (int i = 0; i < len; i++) {
 
             ArrayList<Integer> tmp = new ArrayList<>(left);
             r[level] = tmp.remove(i);
@@ -100,7 +124,73 @@ public class TravellingSalesman {
         return r;
     }
 
+	private void s(int[] r, int[] left, int level) {
 
+		if (level >= r.length) {
+            Double distance = calculateDistanceTravelled(r);
+			if (distance < shortestDistance) {
+				shortestPath = r.clone();
+				shortestDistance = distance;
+			}
+			return;
+		}
+
+		int len = left.length;
+
+		if (level == 1) {
+		    len = (len)/2;
+        }
+
+		for (int i = 0; i < len; i++) {
+			if (left[i] != -1) {
+				r[level] = left[i];
+				left[i] = -1;
+
+				s(r, left, level + 1);
+
+				left[i] = r[level];
+			}
+		}
+
+		return;
+
+	}
+
+	private void s2(int[] r, int[] left, int level, Double pathLen) {
+
+		if (pathLen >= shortestDistance) {
+			return;
+		}
+
+		if (level > left.length) {
+			pathLen += getDistance(r[0], r[r.length-1]);
+			if (pathLen < shortestDistance) {
+				shortestPath = r.clone();
+				shortestDistance = calculateDistanceTravelled(r);
+			}
+			return;
+		}
+
+		int len = left.length;
+
+		if (level == 1) {
+			len = (len)/2;
+		}
+
+		for (int i = 0; i < len; i++) {
+			if (left[i] != -1) {
+				r[level] = left[i];
+				left[i] = -1;
+
+				s2(r, left, level + 1, pathLen + getDistance(r[level-1], r[level]));
+
+				left[i] = r[level];
+			}
+		}
+
+		return;
+
+	}
 	
 	/**
 	 * Returns an optimal shortest tour and returns its distance given the
@@ -110,9 +200,10 @@ public class TravellingSalesman {
 	 * @return Distance of the optimal shortest TSP tour
 	 */
 	public double calculateExactShortestTourDistance(int start){
-	    if (shortestDistance != Double.MAX_VALUE)
-	        return shortestDistance;
-		return calculateDistanceTravelled(calculateExactShortestTour(start));
+	    if (shortestDistance == Double.MAX_VALUE)
+            calculateExactShortestTour(start);
+
+        return shortestDistance;
 	}	
 	
 	/**
