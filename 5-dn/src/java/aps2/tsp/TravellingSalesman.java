@@ -70,126 +70,72 @@ public class TravellingSalesman {
 	 * @param start Index of the origin node
 	 * @return List of nodes to visit in specific order
 	 */
-	public int[] calculateExactShortestTour(int start){
-
+	public int[] calculateExactShortestTour(int start) {
         if (shortestDistance != Double.MAX_VALUE)
             return shortestPath;
 
         ArrayList<Integer> nId = new ArrayList<>(nodesId);
         int startId = nId.remove(start);
 
-
         int[] left = new int[nId.size()];
-
 		for (int i = 0; i < nId.size(); i++) {
 			left[i] = nId.get(i);
 		}
 
         int[] tour = new int[nodes.size()];
-		tour[0] = start;
+		tour[0] = startId;
 
-        //s(tour, left, 1);
-		s2(tour, left, 1, 0.0);
-
+		findShortestPath(tour, left, 1, 0.0);
 
         return shortestPath;
 	}
 
-    private int[] s(int[] r, ArrayList<Integer> left, int level) {
-	    // clone arrays
-	    //r = r.clone();
 
-        if (level >= r.length-1) {
-            Double distance = calculateDistanceTravelled(r);
-            if (distance < shortestDistance) {
-                shortestPath = r.clone();
-                shortestDistance = distance;
-            }
-            return r;
-        }
 
-        int len = left.size();
-
-        if (level == 0) {
-            len = (len)/2 + 1;
-        }
-
-        for (int i = 0; i < len; i++) {
-
-            ArrayList<Integer> tmp = new ArrayList<>(left);
-            r[level] = tmp.remove(i);
-            s(r, tmp, level+1);
-        }
-
-        return r;
-    }
-
-	private void s(int[] r, int[] left, int level) {
-
-		if (level >= r.length) {
-            Double distance = calculateDistanceTravelled(r);
-			if (distance < shortestDistance) {
-				shortestPath = r.clone();
-				shortestDistance = distance;
-			}
-			return;
-		}
-
-		int len = left.length;
-
-		if (level == 1) {
-		    len = (len)/2;
-        }
-
-		for (int i = 0; i < len; i++) {
-			if (left[i] != -1) {
-				r[level] = left[i];
-				left[i] = -1;
-
-				s(r, left, level + 1);
-
-				left[i] = r[level];
-			}
-		}
-
-		return;
-
-	}
-
-	private void s2(int[] r, int[] left, int level, Double pathLen) {
-
+	private void findShortestPath(int[] currentTour, int[] left, int level, Double pathLen) {
+		// return if current path is longer than shortest
 		if (pathLen >= shortestDistance) {
 			return;
 		}
 
+		// check if path is completely built
 		if (level > left.length) {
-			pathLen += getDistance(r[0], r[r.length-1]);
+			// add distance from last point to start
+			pathLen += getDistance(currentTour[0], currentTour[currentTour.length-1]);
+
+			// replace path if new one is shorter
 			if (pathLen < shortestDistance) {
-				shortestPath = r.clone();
-				shortestDistance = calculateDistanceTravelled(r);
+				shortestPath = currentTour.clone();
+				shortestDistance = pathLen;
 			}
 			return;
 		}
 
 		int len = left.length;
 
+		// go only through half of points, so it skip checking reversed paths
 		if (level == 1) {
 			len = (len)/2;
 		}
 
 		for (int i = 0; i < len; i++) {
 			if (left[i] != -1) {
-				r[level] = left[i];
+				// add current point to path
+				currentTour[level] = left[i];
+
+				// remove current point, so others won't use it
 				left[i] = -1;
 
-				s2(r, left, level + 1, pathLen + getDistance(r[level-1], r[level]));
+				// add distance from last point to newly added point
+				double currentPathLen = pathLen + getDistance(currentTour[level-1], currentTour[level]);
 
-				left[i] = r[level];
+				findShortestPath(currentTour, left, level + 1, currentPathLen);
+
+				// restore current point
+				left[i] = currentTour[level];
 			}
 		}
-
 		return;
-
 	}
 	
 	/**
@@ -297,7 +243,7 @@ public class TravellingSalesman {
 
                 if (newDistance < distance) {
                     distance = newDistance;
-                    route = newRoute;
+                    route = newRoute.clone();
 
                     // reset loops
                     i = 0;
