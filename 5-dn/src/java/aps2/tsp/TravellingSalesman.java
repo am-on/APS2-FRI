@@ -115,7 +115,7 @@ public class TravellingSalesman {
 
 		// go only through half of points, so it skip checking reversed paths
 		if (level == 1) {
-			len = (len)/2;
+			len = (len)/2 + 1;
 		}
 
 		for (int i = 0; i < len; i++) {
