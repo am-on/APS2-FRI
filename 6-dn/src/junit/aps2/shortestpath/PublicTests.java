@@ -1,0 +1,200 @@
+package aps2.shortestpath;
+
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Vector;
+
+import aps2.shortestpath.ShortestPath;
+import junit.framework.TestCase;
+
+public class PublicTests extends TestCase {
+	private Vector<String> allTowns;
+	private Random r;
+	private static String[] suffixes = { "grad", "burg", "ton", "ek" };
+	private static String[] prequalifiers = {"gornji", "doljni", "srednji", "nagy", "kis", "ober", "unter"};
+	private static String[] roots = {"kraven", "boler", "koenig", "pasji", "maczka", "kirchen", "senov", "bistrin", "drenov",
+		"raven", "poden", "wegen", "lisen", "kirgen", "krulen", "mulen", "tulen", "bulen", "peter", "pavel", "ekaterin"};
+	protected void setUp() throws Exception {
+		allTowns = new Vector<String>();
+
+		for (String suffix:suffixes){
+			for (String root:roots){
+				allTowns.add(root + suffix);
+			}
+		}
+		for (String prequalifier:prequalifiers){
+			for (String suffix:suffixes){
+				for (String root:roots){
+					allTowns.add(prequalifier + " " + root + suffix);
+				}
+			}
+		}
+
+		r = new Random(31337);
+	}
+	private void fillGraphUndirected(ShortestPath g, int npoints, int ncrosslinks, Random r){
+		for (int i = 0; i < npoints; i++){
+			assertTrue(g.addNode(allTowns.get(i)));
+		}
+		Vector<String> t = g.getNodes();
+		int a, b, w;
+		int i;
+		for (i = 1; i < t.size(); i++){
+			a = r.nextInt(i);
+			w = r.nextInt(10)+1;
+			g.addEdge(t.get(i), t.get(a), w);
+			g.addEdge(t.get(a), t.get(i), w);
+		}
+		for (i = 0; npoints > 1 && i < ncrosslinks; i++){
+			a = r.nextInt(npoints-1)+1;
+			b = r.nextInt(a);
+			w = r.nextInt(10)+1;
+			g.addEdge(t.get(a), t.get(b), w);
+			g.addEdge(t.get(b), t.get(a), w);
+		}
+	}
+	
+	public void testSimpleAdd() throws Exception {
+		ShortestPath g = new ShortestPath();
+		for (int i = 0; i < 10; i++){
+			assertTrue(g.addNode(allTowns.get(i)));
+		}
+		for (int i = 5; i < 10; i++){
+			assertFalse(g.addNode(allTowns.get(i)));
+		}
+		for (int i = 10; i < 15; i++){
+			assertTrue(g.addNode(allTowns.get(i)));
+		}
+	}
+	
+	public void testNeighbors() throws Exception {
+		ShortestPath g = new ShortestPath();
+		r.setSeed(64);
+		fillGraphUndirected(g, 5, 3, r);
+		final Integer[][] dists = {
+			{ 0,  7,  9, null, null},
+			{ 7,  0, null,  3,  8},
+			{ 9, null,  0, null,  2},
+			{null,  3, null,  0, null},
+			{null,  8,  2, null,  0}};
+		Vector<String> towns = g.getNodes();
+		for (int i = 0; i < 5; i++){
+			g.computeShortestPaths(towns.elementAt(i));
+			for (int j = 0; j < 5; j++){
+				if (dists[i][j] != null){
+					assertEquals((int)dists[i][j], g.getShortestDist(towns.elementAt(i), towns.elementAt(j)));
+				}
+			}
+		}
+	}
+
+	public void testNotConnected() throws Exception {
+		ShortestPath g = new ShortestPath();
+		r.setSeed(64);
+
+		for (int i = 0; i < 10; i++){
+			assertTrue(g.addNode(allTowns.get(i)));
+		}
+
+		Vector<String> towns = g.getNodes();
+
+
+
+		g.computeShortestPaths(towns.elementAt(0));
+		assertEquals(Integer.MAX_VALUE, g.getShortestDist(allTowns.get(0), allTowns.get(1)));
+
+	}
+	
+	public void testDistToFewTownsUndirected() throws Exception {
+		ShortestPath g = new ShortestPath();
+		fillGraphUndirected(g, 10, 15, r);
+		Vector<String> towns = g.getNodes();
+		g.computeShortestPaths(towns.get(0));
+		assertEquals(g.getShortestDist(towns.get(0), towns.get(3)), 1);
+		assertEquals(g.getShortestDist(towns.get(0), towns.get(4)), 5);
+		assertEquals(g.getShortestDist(towns.get(0), towns.get(5)), 13);
+		assertEquals(g.getShortestDist(towns.get(0), towns.get(4)), 5);
+	}
+	
+	public void testDistToEachTownUndirected() throws Exception {
+		ShortestPath g = new ShortestPath();
+		r.setSeed(35);
+		fillGraphUndirected(g, 5, 1, r);
+		final int[][] dists = {
+			{0,  8,  6,  8, 13},
+			{8,  0, 14, 16,  2},
+			{6, 14,  0,  8,  9},
+			{8, 16,  8,  0, 10},
+			{13, 2,  9, 10,  0}};
+		Vector<String> towns = new Vector<String>(g.getNodes());
+		for (int i = 0; i < 5; i++){
+			g.computeShortestPaths(towns.elementAt(i));
+			for (int j = 0; j < 5-i; j++){
+				assertEquals(dists[i][j], g.getShortestDist(towns.elementAt(i), towns.elementAt(j)));
+			}
+		}
+	}
+	public void testPathToTownUndirected() throws Exception {
+		ShortestPath g = new ShortestPath();
+		r.setSeed(25);
+		fillGraphUndirected(g, 10, 2, r);
+		Iterator<String>si = g.getNodes().iterator();
+		String start = "drenovgrad";
+		String dest = "ravengrad";
+		while(si.hasNext()){
+			dest = si.next();
+		}
+		final String[] path = {"drenovgrad", "koeniggrad", "kravengrad", "bolergrad", "pasjigrad", "bistringrad", "ravengrad"};
+		int i = 0;
+		g.computeShortestPaths(start);
+		for (String s:g.getShortestPath(start, dest)){
+			assertEquals(s, path[i]);
+			i++;
+		}
+	}
+
+	public void testNaloga() throws Exception {
+		ShortestPath g = new ShortestPath();
+
+		g.addNode("c");
+		g.addNode("g");
+		g.addNode("j");
+		g.addNode("k");
+		g.addNode("l");
+		g.addNode("m");
+		g.addNode("n");
+		g.addNode("p");
+
+		g.addEdge("p", "m", 20);
+		g.addEdge("m", "p", 20);
+		g.addEdge("j", "g", 65);
+		g.addEdge("g", "j", 65);
+		g.addEdge("p", "g", 40);
+		g.addEdge("g", "p", 40);
+		g.addEdge("l", "g", 50);
+		g.addEdge("g", "l", 50);
+		g.addEdge("l", "j", 40);
+		g.addEdge("j", "l", 40);
+		g.addEdge("l", "p", 60);
+		g.addEdge("p", "l", 60);
+		g.addEdge("l", "n", 40);
+		g.addEdge("n", "l", 40);
+		g.addEdge("l", "c", 45);
+		g.addEdge("c", "l", 45);
+		g.addEdge("l", "k", -15);
+		g.addEdge("k", "l", -15);
+		g.addEdge("j", "k", 45);
+		g.addEdge("k", "j", 45);
+		g.addEdge("c", "k", 60);
+		g.addEdge("k", "c", 60);
+		g.addEdge("c", "n", 65);
+		g.addEdge("n", "c", 65);
+		g.addEdge("c", "m", 35);
+		g.addEdge("m", "c", 35);
+		g.addEdge("n", "m", 75);
+		g.addEdge("m", "n", 75);
+
+		g.computeShortestPaths("j");
+
+	}
+}
